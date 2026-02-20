@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Nocturne Engine</title>
+
+<style>
+/* ---------- BASE ---------- */
+body {
+  margin: 0;
+  background: #050507;
+  color: #e6e6e6;
+  font-family: "Georgia", serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* ---------- CONTAINER ---------- */
+.container {
+  width: 420px;
+  padding: 28px;
+  background: #0e0e14;
+  border-radius: 14px;
+  box-shadow: 0 0 60px rgba(0,0,0,0.85);
+}
+
+/* ---------- TEXT ---------- */
+h1 {
+  text-align: center;
+  font-size: 22px;
+  margin-bottom: 20px;
+}
+
+label {
+  font-size: 13px;
+  color: #aaa;
+}
+
+input, select, button {
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background: #1a1a25;
+  color: #eee;
+}
+
+button {
+  background: #6a5cff;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+button:hover {
+  background: #7b70ff;
+}
+
+/* ---------- MONOLOGUE ---------- */
+#monologue {
+  margin-top: 20px;
+  line-height: 1.6;
+  font-size: 15px;
+  opacity: 0;
+}
+
+/* ---------- REVEAL ---------- */
+.reveal {
+  animation: fadeIn 2s forwards;
+}
+
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+
+/* ---------- TAROT ---------- */
+.tarot {
+  width: 160px;
+  height: 260px;
+  margin: 20px auto;
+  background: #111;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #ddd;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 1.2s ease;
+}
+
+.tarot.flip {
+  transform: rotateY(180deg);
+}
+
+/* ---------- ACCESSIBILITY ---------- */
+.textOnly {
+  background: white;
+  color: black;
+  font-family: serif;
+}
+
+.textOnly button,
+.textOnly audio {
+  display: none;
+}
+
+/* ---------- DISCLAIMER ---------- */
+.disclaimer {
+  font-size: 11px;
+  color: #888;
+  margin-top: 16px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container" id="app">
+  <h1>Nocturne Engine</h1>
+
+  <!-- INPUT -->
+  <label>Date of Birth</label>
+  <input type="date" id="dob">
+
+  <label>
+    <input type="checkbox" id="consent">
+    I understand this is symbolic, fictional narrative.
+  </label>
+
+  <label>Voice Style</label>
+  <select id="voice">
+    <option value="neutral">Neutral</option>
+    <option value="low">Low & Calm</option>
+    <option value="measured">Measured</option>
+  </select>
+
+  <label>
+    <input type="checkbox" onchange="toggleAccessibility(this.checked)">
+    Accessibility Mode (Text Only)
+  </label>
+
+  <button onclick="start()">Enter</button>
+
+  <!-- TAROT -->
+  <div class="tarot" id="tarot" onclick="flipTarot()">
+    Click to Reveal Card
+  </div>
+
+  <!-- MONOLOGUE -->
+  <div id="monologue"></div>
+
+  <button onclick="speak()">🔊 Listen</button>
+
+  <div class="disclaimer">
+    AI-generated noir prose. Fictional. Non-diagnostic.
+  </div>
+</div>
+
+<audio id="ambience" loop>
+  <source src="https://cdn.pixabay.com/audio/2022/10/26/audio_9f61a6fd62.mp3">
+</audio>
+
+<script>
+/* ---------- DATASETS ---------- */
+
+const TAROT = [
+  { name: "The Moon", theme: "illusion and intuition" },
+  { name: "The Hermit", theme: "solitude and insight" },
+  { name: "The Tower", theme: "collapse of false structures" }
+];
+
+const PHILOSOPHY = [
+  "Character is fate. — Heraclitus",
+  "You suffer more in imagination than reality. — Stoicism",
+  "The soft overcomes the hard. — Taoism"
+];
+
+/* ---------- HELPERS ---------- */
+
+function zodiac(month, day) {
+  const signs = [
+    "Capricorn","Aquarius","Pisces","Aries","Taurus","Gemini",
+    "Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius"
+  ];
+  const days = [19,18,20,19,20,20,22,22,22,22,21,21];
+  return day <= days[month] ? signs[month] : signs[(month+1)%12];
+}
+
+function lunarPhase(day) {
+  const phases = [
+    "New Moon — beginnings hidden",
+    "Waxing Moon — desire building",
+    "Full Moon — emotion revealed",
+    "Waning Moon — release and detachment"
+  ];
+  return phases[day % 4];
+}
+
+/* ---------- CORE ---------- */
+
+let chosenTarot;
+
+function start() {
+  const dob = document.getElementById("dob").value;
+  const consent = document.getElementById("consent").checked;
+
+  if (!dob || !consent) {
+    alert("Date and consent required.");
+    return;
+  }
+
+  const date = new Date(dob);
+  const sign = zodiac(date.getMonth(), date.getDate());
+  const moon = lunarPhase(date.getDate());
+
+  chosenTarot = TAROT[date.getDate() % TAROT.length];
+  const philosophy = PHILOSOPHY[date.getDate() % PHILOSOPHY.length];
+
+  const text = `
+[AI-GENERATED NOIR PROSE]
+
+I don’t announce my intentions.
+Silence taught me faster than words ever could.
+
+I was shaped like a ${sign}.
+Not because I chose it—
+but because pressure leaves patterns.
+
+Tonight, the ${moon}.
+The card on the table is ${chosenTarot.name}.
+It speaks of ${chosenTarot.theme}.
+
+An old sentence follows me:
+"${philosophy}"
+
+I don’t call it truth.
+I just keep it close.
+  `;
+
+  const mono = document.getElementById("monologue");
+  mono.innerText = text;
+  mono.classList.add("reveal");
+
+  const audio = document.getElementById("ambience");
+  audio.volume = 0.2;
+  audio.play();
+}
+
+function speak() {
+  const text = document.getElementById("monologue").innerText;
+  const preset = document.getElementById("voice").value;
+
+  const u = new SpeechSynthesisUtterance(text);
+
+  if (preset === "low") {
+    u.rate = 0.9;
+    u.pitch = 0.85;
+  } else if (preset === "measured") {
+    u.rate = 1;
+    u.pitch = 1;
+  }
+
+  speechSynthesis.speak(u);
+}
+
+function flipTarot() {
+  const card = document.getElementById("tarot");
+  card.classList.toggle("flip");
+  card.innerText = chosenTarot
+    ? chosenTarot.name
+    : "Awaiting Entry";
+}
+
+function toggleAccessibility(on) {
+  document.body.classList.toggle("textOnly", on);
+}
+</script>
+
+</body>
+</html>
